@@ -5,6 +5,9 @@ interface Product {
     id: number;
     name: string;
     salePrice: string;
+    pictures: {
+        url: string;
+    } | null;
     __record_id: number;
     hasPreviousPage: boolean;
     hasNextPage: boolean;
@@ -47,8 +50,15 @@ const Home = () => {
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '20px' }}>
                 {products.map(product => (
                     <div key={product.id} style={{ border: '1px solid #ddd', borderRadius: '8px', padding: '15px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
+                        {product.pictures && (
+                            <img
+                                src={`http://localhost:5265${product.pictures.url}`}
+                                alt={product.name}
+                                style={{ width: '100%', height: '200px', objectFit: 'cover', borderRadius: '4px', marginBottom: '10px' }}
+                            />
+                        )}
                         <h3 style={{ margin: '0 0 10px 0' }}>{product.name}</h3>
-                        <p style={{ margin: '0 0 10px 0', color: '#666' }}>Price: ${product.salePrice}</p>
+                        <p style={{ margin: '0 0 10px 0', color: '#666' }}>Price: £{product.salePrice}</p>
                         <Link
                             to={`/${product.id}`}
                             style={{
