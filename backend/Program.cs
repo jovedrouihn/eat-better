@@ -48,7 +48,7 @@ await app.UseCmsAsync();
 //add two default admin users
 await app.EnsureCmsUser("sadmin@cms.com", "Admin1!", [Roles.Sa]).Ok();
 await app.EnsureCmsUser("admin@cms.com", "Admin1!", [Roles.Admin]).Ok();
-await app.EnsureCmsUser("temp@cms.com", "Temp1!", ["Temp"]).Ok();
+await app.EnsureCmsUser("guest@cms.com", "Guest1!", [Roles.Guest]).Ok();
 
 app.UseCors("AllowFrontend");
 

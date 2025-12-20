@@ -46,15 +46,20 @@ const Cart = () => {
                 credentials: 'include' // Important to receive cookies
             });
 
+            const items = cartItems.map(item => ({
+                "product": { "id": item.productId },
+                "count": item.quantity
+            }));
             if (!loginRes.ok) throw new Error('Login failed');
 
             // 2. Create Order
-            const orderRes = await fetch('/api/entities/order/insert', {
+            const orderRes: any = await fetch('/api/entities/order/insert', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    "name": name,
-                    "phone": phone
+                    name,
+                    phone,
+                    items
                 }),
                 credentials: 'include' // Send cookies
             });
@@ -63,21 +68,7 @@ const Cart = () => {
             const orderData = await orderRes.json();
             const orderId = orderData.id;
 
-            // 3. Insert Order Items
-            for (const item of cartItems) {
-                const itemRes = await fetch(`/api/entities/collection/order/${orderId}/items/insert`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        "name": { "id": item.productId },
-                        "count": item.quantity,
-                        "parentOrder": { "id": orderId }
-                    }),
-                    credentials: 'include'
-                });
 
-                if (!itemRes.ok) console.error(`Failed to add item ${item.name}`);
-            }
 
             alert('Order submitted successfully!');
             clearCart();
