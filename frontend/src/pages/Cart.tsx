@@ -36,12 +36,12 @@ const Cart = () => {
 
         try {
             // 1. Sign in as temp user
-            const loginRes = await fetch('http://localhost:5265/api/login', {
+            const loginRes = await fetch('/api/login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    "usernameOrEmail": "temp@cms.com",
-                    "password": "Temp1!"
+                    "usernameOrEmail": "__guest_",
+                    "password": "guest1!"
                 }),
                 credentials: 'include' // Important to receive cookies
             });
@@ -49,7 +49,7 @@ const Cart = () => {
             if (!loginRes.ok) throw new Error('Login failed');
 
             // 2. Create Order
-            const orderRes = await fetch('http://localhost:5265/api/entities/order/insert', {
+            const orderRes = await fetch('/api/entities/order/insert', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -65,7 +65,7 @@ const Cart = () => {
 
             // 3. Insert Order Items
             for (const item of cartItems) {
-                const itemRes = await fetch(`http://localhost:5265/api/entities/collection/order/${orderId}/items/insert`, {
+                const itemRes = await fetch(`/api/entities/collection/order/${orderId}/items/insert`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({

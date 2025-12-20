@@ -12,7 +12,7 @@ const OrderConfirm = () => {
     useEffect(() => {
         if (!orderId) return;
 
-        fetch(`http://localhost:5265/api/entities/collection/order/${orderId}/items?offset=0&limit=100&sort[id]=-1`)
+        fetch(`/api/entities/collection/order/${orderId}/items?offset=0&limit=100&sort[id]=-1`)
             .then(res => {
                 if (!res.ok) throw new Error('Failed to fetch order items');
                 return res.json();
