@@ -9,7 +9,7 @@ using FormCMS.Utils.ResultExt;
 using FormCMS.Video.Workers;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-
+using Microsoft.Extensions.FileProviders;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -28,32 +28,49 @@ builder.Services.AddCors(options =>
 builder.Services.AddOutputCache();
 
 const string connectionString = "Data Source=cms.db";
-builder.Services.AddSqliteCms(connectionString);
+builder.Services.AddSqliteCms(connectionString, x =>
+{
+    x.MapCmsHomePage = false;
+    x.KnownPaths = [.. x.KnownPaths, "vite.ico", "assets"];
+});
 
 builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlite(connectionString));
-builder.Services.AddCmsAuth<CmsUser, IdentityRole, AppDbContext>(new AuthConfig(KeyAuthConfig:new KeyAuthConfig("apikey")));
+builder.Services.AddCmsAuth<CmsUser, IdentityRole, AppDbContext>(new AuthConfig(KeyAuthConfig: new KeyAuthConfig("apikey")));
 builder.Services.AddAuditLog();
 
-
-
 var app = builder.Build();
-//ensure identity tables are created
-using var scope = app.Services.CreateScope();
-var ctx = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-await  ctx.Database.EnsureCreatedAsync();
+
+// Configure static files for app subdirectory
+var appPath = Path.Combine(app.Environment.WebRootPath, "app");
+if (Directory.Exists(appPath))
+{
+    app.UseDefaultFiles(new DefaultFilesOptions
+    {
+        FileProvider = new PhysicalFileProvider(appPath),
+        RequestPath = ""
+    });
+
+    app.UseStaticFiles(new StaticFileOptions
+    {
+        FileProvider = new PhysicalFileProvider(appPath),
+        RequestPath = ""
+    });
+}
 
 //use cms' CRUD 
 await app.UseCmsAsync();
 
+//ensure identity tables are created
+using var scope = app.Services.CreateScope();
+var ctx = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+await ctx.Database.EnsureCreatedAsync();
+
 //add two default admin users
 await app.EnsureCmsUser("sadmin@cms.com", "Admin1!", [Roles.Sa]).Ok();
 await app.EnsureCmsUser("admin@cms.com", "Admin1!", [Roles.Admin]).Ok();
-await app.EnsureCmsUser("guest@cms.com", "Guest1!", [Roles.Guest]).Ok();
 
 app.UseCors("AllowFrontend");
 
-// app.MapGet("/", () => "Hello World!");
+app.MapFallbackToFile("app/index.html");
 
 app.Run();
-
-

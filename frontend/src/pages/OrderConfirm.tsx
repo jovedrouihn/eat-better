@@ -56,8 +56,8 @@ const OrderConfirm = () => {
                             <tr key={item.id} style={{ borderBottom: '1px solid #eee' }}>
                                 <td style={{ padding: '10px' }}>{item.id}</td>
                                 <td style={{ padding: '10px' }}>
-                                    {/* Handle potentially unresolved relation or complex object */}
-                                    {typeof item.name === 'object' ? item.product.name || item.product.id : item.product.name}
+                                    {/* Display product name from nested object */}
+                                    {item.name?.name || item.name?.id || item.name || 'N/A'}
                                 </td>
                                 <td style={{ padding: '10px' }}>{item.count}</td>
                             </tr>
