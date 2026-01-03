@@ -12,5 +12,9 @@ export default defineConfig({
         rewrite: (path) => path.replace(/^\/api/, '/api')
       }
     }
+  },
+  build: {
+    outDir: '../backend/wwwroot/app',
+    emptyOutDir: true
   }
 })
