@@ -61,6 +61,39 @@ The frontend is a Vite + React + TypeScript application.
     ```
 4.  Open your browser to **http://localhost:5173**.
 
+## Deployment (Oracle Cloud / Docker)
+
+This project is configured to run as a single Docker container containing both Backend and Frontend.
+
+### 1. Build the Docker Image
+```bash
+docker build -t eat-better-app .
+```
+
+### 2. Run with Persistent Database
+To ensure your database survives container restarts (updates), you **must** use a volume mapped to `/app/data`.
+
+```bash
+# Create a data directory on your host
+mkdir -p ~/eat-better-data
+
+# Run the container
+docker run -d \
+  --name eat-better \
+  --restart unless-stopped \
+  -p 80:8080 \
+  -v ~/eat-better-data:/app/data \
+  -e ConnectionStrings__DefaultConnection="Data Source=data/cms.db" \
+  eat-better-app
+```
+
+### 3. Updating
+To update the app:
+1.  `git pull`
+2.  `docker build -t eat-better-app .`
+3.  `docker stop eat-better && docker rm eat-better`
+4.  Run the `docker run` command again.
+
 ## Troubleshooting
 
 *   **Address already in use**: If you see an error about port 5265 or 5173 being in use:
