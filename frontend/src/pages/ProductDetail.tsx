@@ -53,7 +53,7 @@ const ProductDetail = () => {
     useEffect(() => {
         // Fetching all products and filtering to find the specific one.
         // Ideally, we should use a specific endpoint like /api/products/{id} if available.
-        fetch('http://localhost:5265/api/queries/products')
+        fetch('/api/queries/products')
             .then(res => {
                 if (!res.ok) {
                     throw new Error('Network response was not ok');
