@@ -7,6 +7,7 @@ using FormCMS.Search.Workers;
 using FormCMS.Subscriptions;
 using FormCMS.Utils.ResultExt;
 using FormCMS.Video.Workers;
+using GraphQL.Utilities.Visitors;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
@@ -27,11 +28,11 @@ builder.Services.AddCors(options =>
 
 builder.Services.AddOutputCache();
 
-const string connectionString = "Data Source=cms.db";
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? "Data Source=cms.db";
 builder.Services.AddSqliteCms(connectionString, x =>
 {
+     x.RouteOptions.PageBaseUrl = "/page";
     x.MapCmsHomePage = false;
-    x.KnownPaths = [.. x.KnownPaths, "vite.ico", "assets"];
 });
 
 builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlite(connectionString));
@@ -39,26 +40,6 @@ builder.Services.AddCmsAuth<CmsUser, IdentityRole, AppDbContext>(new AuthConfig(
 builder.Services.AddAuditLog();
 
 var app = builder.Build();
-
-// Configure static files for app subdirectory
-var appPath = Path.Combine(app.Environment.WebRootPath, "app");
-if (Directory.Exists(appPath))
-{
-    app.UseDefaultFiles(new DefaultFilesOptions
-    {
-        FileProvider = new PhysicalFileProvider(appPath),
-        RequestPath = ""
-    });
-
-    app.UseStaticFiles(new StaticFileOptions
-    {
-        FileProvider = new PhysicalFileProvider(appPath),
-        RequestPath = ""
-    });
-}
-
-//use cms' CRUD 
-await app.UseCmsAsync();
 
 //ensure identity tables are created
 using var scope = app.Services.CreateScope();
@@ -69,8 +50,21 @@ await ctx.Database.EnsureCreatedAsync();
 await app.EnsureCmsUser("sadmin@cms.com", "Admin1!", [Roles.Sa]).Ok();
 await app.EnsureCmsUser("admin@cms.com", "Admin1!", [Roles.Admin]).Ok();
 
+//use cms' CRUD 
+await app.UseCmsAsync();
 app.UseCors("AllowFrontend");
 
-app.MapFallbackToFile("app/index.html");
+app.MapWhen(context => 
+        !context.Request.Path.StartsWithSegments("/_content") &&
+        !context.Request.Path.StartsWithSegments("/api"),
+    subApp =>
+    {
+        subApp.UseRouting();
+        subApp.UseEndpoints(endpoints =>
+        {
+            endpoints.MapFallbackToFile("/", $"index.html");
+            endpoints.MapFallbackToFile("/{*path:nonfile}", $"index.html");
+        });
+    }); 
 
 app.Run();
